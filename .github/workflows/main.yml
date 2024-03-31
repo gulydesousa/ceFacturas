@@ -1,0 +1,108 @@
+# 3. FINALIZAMOS CREANDO UN WORKFLOW EN "GITHUB ACTIONS" 
+#    NOS LANZARÁ ADVERTENCIAS
+#    CUANDO ENCUENTRA PATRONES DE CODIGO QUE DEBERÍAN SER REVISADOS
+
+#****************************************************************************************
+#ESTABLECEREMOS WORKFLOW EN GITHUB ACTIONS PARA ANALIZAR NUESTRO PROYECTO 
+#EN BUSCA DE PATRONES DE CÓDIGO 
+#QUE PODRÍAN INDICAR ÁREAS QUE NECESITAN REFACTORIZAR. 
+#****************************************************************************************
+
+#EN CASO DE DETECTAR ESTOS PATRONES, 
+#SE GENERARÁN ADVERTENCIAS PARA ALERTARNOS SOBRE POSIBLES ÁREAS DE MEJORA EN NUESTRO CÓDIGO.
+#****************************************************************************************
+
+name: Revisión de Código
+
+#Ejecución automática
+#on:  [push, pull_request]
+
+on: # Ejecución manual
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4 # The code snippet - uses: actions/checkout@v4 is a step in the workflow. 
+                                # It uses the actions/checkout action, specifically version 4, 
+                                # to clone the repository and checkout the latest commit on the ubuntu-latest environment
+
+
+
+    #**************************************
+    #**************************************
+    #PASO 1: Busca "new FacturaElectronicaV321.InvoiceLineType()
+    #        NO SE PERMITE ESTA LINEA DE CODIGO en ningun archivo .cs fuera del InvoiceLine.cs
+    - name: Evitar instancias de 'new FacturaElectronicaV321.InvoiceLineType()' fuera de InvoiceLine.cs
+    #run es para ejecutar comandos en la terminal
+      run: |
+        # Define la función a buscar
+        FUNCION="new FacturaElectronicaV321.InvoiceLineType()"
+        # Define el archivo en el que se permite la función
+        CLASS="InvoiceLine.cs"
+        # Muestra el mensaje de inicio en un grupo de acciones
+        echo "::group:: $FUNCION"
+        #*********************************************************
+        # Busca instancias de 'new FacturaElectronicaV321.InvoiceLineType' en todos los archivos del proyecto, excluyendo InvoiceLine.cs
+        grep -RnF --exclude-dir=.github --include=*.cs --exclude=InvoiceLine.cs  "$FUNCION" . > matches.txt || true        
+        #*********************************************************
+
+        # Si se encontraron instancias, muestra un mensaje con la ruta del archivo, el número de línea y la coincidencia
+        if [ -s matches.txt ]; then
+          echo "Se encontraron instancias de $FUNCION fuera del archivo $CLASS. Revisa si están comentadas"
+
+          # Muestra las instancias encontradas
+          while IFS= read -r line; do
+            FILE=$(echo "$line" | awk -F':' '{print $1}')
+            LINENO=$(echo "$line" | awk -F':' '{print $2}')
+            MATCH=$(echo "$line" | awk -F':' '{for (i=3; i<=NF; i++) printf $i (i==NF?ORS:OFS)}')
+            #Linea de donde viene la advertencia
+            echo "$line"
+            #>>>>>WARNING
+            echo "::warning title=Estándares de programación,file=$FILE::Encontrada instancia no permitida:$line"
+          done < matches.txt
+        else
+          echo "No se encontraron instancias problemáticas."
+        fi
+        rm -f matches.txt
+        # Finaliza el grupo de acciones
+        echo "::endgroup::"
+
+
+
+    #**************************************
+    #**************************************
+    #PASO 2: Busca foreach (var value in Enum.GetValues(typeof(FacturaElectronica
+    - name: Buscar patrones de código no permitidos
+      run: |
+        # Define el patrón a buscar
+        PATRON="foreach (var value in Enum.GetValues(typeof(FacturaElectronica"
+        # Busca instancias del patrón en todos los archivos del proyecto, excluyendo InvoiceLine.cs
+        grep -RnF --exclude-dir=.github --include=*.cs --exclude=InvoiceLine.cs  "$PATRON" . > matches.txt || true
+        # Si se encontraron instancias, muestra un mensaje con la ruta del archivo, el número de línea y la coincidencia
+        if [ -s matches.txt ]; then
+          echo "Se encontraron usos no permitidos del método GetEnumValue. Revisa si están comentados"
+          # Muestra las instancias encontradas
+          while IFS= read -r line; do
+            FILE=$(echo "$line" | awk -F':' '{print $1}')
+            LINENO=$(echo "$line" | awk -F':' '{print $2}')
+            MATCH=$(echo "$line" | awk -F':' '{for (i=3; i<=NF; i++) printf $i (i==NF?ORS:OFS)}')
+            #Linea de donde viene la advertencia
+            echo "$line"
+            #>>>>>WARNING
+            echo "::warning title=Estándares de programación,file=$FILE::Patrón de código no válido:$line"
+          done < matches.txt
+        else
+          echo "No se encontraron instancias problemáticas."
+        fi
+        rm -f matches.txt
+
+
+
+    #**************************************
+    #Refactorizamos nuestra clase con ayuda del copilot
+    #Integramos esas sugerencias en un proceso de revision de codigo
+    #Lanzando advertencias sobre lineas de codigo que deberían ser revisadas
+    #**************************************
+              
