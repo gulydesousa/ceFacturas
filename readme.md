@@ -16,15 +16,15 @@ Este repositorio demuestra cómo utilizar GitHub Actions para automatizar la rev
 - Fichero `InvoiceLine.cs` tiene dos metodos sugeridos por Copilot para refactorizar la clase `cEFacturasBL`
 
 ## Sugerencia#1: 
-![alt text](image.png)
-![alt text](image-1.png)
+![alt text](images/image.png)
+![alt text](images/image-1.png)
 
 ## Sugerencia#2
 Resaltando un bloque de codigo como este
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 Obtenemos la sugerencia de Copilot para refactorizar el codigo
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 # Github Actions
 
@@ -55,8 +55,8 @@ echo "::warning title=Estándares de programación,file=$FILE::Encontrada instan
 Identifica usos no adecuados de ciertas expresiones en el código, como iteraciones sobre enums de una manera no recomendada.
 
 # Resultado
-![alt text](image-4.png)
-![alt text](image-3.png)
+![alt text](images/image-4.png)
+![alt text](images/image-3.png)
 
 
 # Conclusión
